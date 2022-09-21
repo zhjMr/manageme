@@ -2,46 +2,60 @@
     <div class="headeLogin">
         <div class="headelBox">
             <h3 class="headleText">小居居会员管理系统</h3>
-            <el-form ref="form" :model="FromLogin" label-width="60px">
-                <el-form-item label="账号">
-                    <el-input v-model="FromLogin.username"></el-input>
+            <el-form :rules="rules" ref="form" :model="FromLogin" label-width="60px">
+                <el-form-item label="账号" prop="username">
+                    <el-input v-model.trim="FromLogin.username"></el-input>
                 </el-form-item>
-                <el-form-item label="密码">
-                    <el-input v-model="FromLogin.password"></el-input>
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model.trim="FromLogin.password"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="onSubmit">登录</el-button>
+                    <el-button type="primary" @click="handleLoginSubmit">登录</el-button>
                 </el-form-item>
             </el-form>
         </div>
     </div>
 </template>
 <script>
-import TestApi from "../api/mag"
+import TestApi from "../api/user"
 export default {
     data() {
         return {
             FromLogin: {
                 username: '',
                 password: ''
+            },
+            rules: {
+                username: [
+                    { required: true, message: '账号不能为空', trigger: 'blur' },
+                    { min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur' }
+                ],
+                password: [
+                    { required: true, message: '密码不能为空', trigger: 'blur' },
+                ],
             }
 
         };
     },
     methods: {
-        onSubmit(SubVal) {
-            console.log(SubVal);
-        },
-        login() {
-            TestApi.login(this.FromLogin).then(response => {
-                console.log(response)
-            }).catch(error => {
-                console.log(error)
+        handleLoginSubmit() {
+            this.$refs['form'].validate(valid => {
+                if (!valid) return
+                this.headelLogin()
             })
         },
+        async headelLogin() {
+            try {
+                const response = await TestApi.login(this.FromLogin)
+                console.log(response);
+                console.log(response.token);
+            } catch (e) {
+                console.log(e.message);
+            }
+        }
     },
     created() {
-        this.login()
+
     },
 }
 </script>
@@ -56,7 +70,6 @@ export default {
     .headelBox {
         border-radius: 20px;
         width: 370px;
-        // height: 200px;
         background-color: aqua;
         margin: 160px auto;
         background: rgb(rgb(225, 225, 225), 0.8);

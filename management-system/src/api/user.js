@@ -1,6 +1,6 @@
 import request from "../utlis/request";
 
-const login = (data) => {
+const login = (data = {}) => {
     return request({
         url: '/admin/login',
         method: 'POST',
