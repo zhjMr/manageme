@@ -17,7 +17,6 @@
     </div>
 </template>
 <script>
-import TestApi from "../api/user"
 export default {
     data() {
         return {
@@ -45,13 +44,14 @@ export default {
             })
         },
         async headelLogin() {
-            try {
-                const response = await TestApi.login(this.FromLogin)
-                console.log(response);
-                console.log(response.token);
-            } catch (e) {
-                console.log(e.message);
-            }
+            const token = await this.$store.dispatch('login', this.FromLogin)
+            console.log(token);
+            if (!token) return
+            const userInfo = await this.$store.dispatch('userInfos')
+            console.log(userInfo);
+            if(!userInfo) return
+            this.$message.success('登录成功')
+            this.$router.push("/index")
         }
     },
     created() {

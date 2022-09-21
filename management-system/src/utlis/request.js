@@ -1,6 +1,6 @@
 
 import axios from 'axios'
-
+import store from '../store/index'
 // 自定义错误信息提示内容
 const exceptionMessage = {
     1000: '用户名或者密码发生错误',
@@ -17,6 +17,10 @@ const service = axios.create({
 
 // 请求拦截器
 service.interceptors.request.use(function (config) {
+    //获取vuex的token
+    const token = store.getters.token
+    //token请求头
+    if (token) config.headers.authorization = "Bearer" + token
     return config;
 }, function (error) {
     return Promise.reject(error);
