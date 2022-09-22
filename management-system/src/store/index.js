@@ -6,8 +6,8 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    token: "",
-    userInfo: {}
+    token: tokenUser.getToken() || "",
+    userInfo: tokenUser.getUserInfo() || ""
   },
   getters: {
     token(state) {

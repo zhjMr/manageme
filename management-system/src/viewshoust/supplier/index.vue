@@ -1,6 +1,6 @@
 <template>
     <div>
-       用户页面  
+        供应商管理
     </div>
 </template>
 <script>

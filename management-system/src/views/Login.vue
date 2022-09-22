@@ -49,7 +49,7 @@ export default {
             if (!token) return
             const userInfo = await this.$store.dispatch('userInfos')
             console.log(userInfo);
-            if(!userInfo) return
+            if (!userInfo) return
             this.$message.success('登录成功')
             this.$router.push("/index")
         }
