@@ -1,6 +1,6 @@
 <template>
     <div>
-        <router-link to="/home" class="router_link">
+        <router-link to="/index" class="router_link">
             <img class="ImgPng" src="http://vue.mengxuegu.com/img/logo.7156be27.png" alt="" width="25px">
             <span class="menAg">小居居会员管理系统</span>
         </router-link>
@@ -35,11 +35,21 @@ export default {
                     break
             }
         },
+        //修改密码
         handleChangePass() {
             alert('修改密码')
         },
-        handleLogout() {
-            alert('退出登录')
+        //退出登录
+        async handleLogout() {
+            try {
+                const response = await this.$store.dispatch('LoginOut')
+                setTimeout(() => {
+                    this.$router.push('/login')
+                }, 100)
+                this.$message.success('退出成功')
+            } catch (e) {
+                console.log(e.message);
+            }
         }
     },
     computed: {

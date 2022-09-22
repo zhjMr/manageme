@@ -13,7 +13,14 @@ const userInfo = () => {
         method: 'GET',
     })
 }
+const logout = () => {
+    return request({
+        url: "/user/logout",
+        method: "POST"
+    })
+}
 export default {
-    login,
-    userInfo,
+    login,//登录
+    userInfo,//用户信息
+    logout,//退出登录
 }

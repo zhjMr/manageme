@@ -51,6 +51,19 @@ export default new Vuex.Store({
       } catch (e) {
         console.log(e.message);
       }
+    },
+
+    //退出登录
+    async LoginOut({ commit }) {
+      try {
+        const headelLogin = await isApi.logout()
+        console.log(headelLogin);
+        commit('SET_TOKEN', '')
+        commit('USER_INFO', '')
+        return headelLogin.data
+      } catch (e) {
+        console.log(e.message);
+      }
     }
   },
   modules: {
