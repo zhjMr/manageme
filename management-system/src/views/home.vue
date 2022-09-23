@@ -29,15 +29,23 @@ export default {
 
         };
     },
+    watch: {
+        async $route(val) {
+            const user = localStorage.getItem('userInfo')
+            if (user == null || user == "") {
+                await this.$store.dispatch('userInfos')
+            }
+        }
+    },
     computed: {
 
     },
     created() {
-        
+
     },
     methods: {
 
-    }
+    },
 }
 </script>
 <style scoped lang="scss">

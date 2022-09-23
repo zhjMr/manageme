@@ -1,20 +1,125 @@
 <template>
-    <div>
-        会员管理
+    <div class="top">
+        <el-form :inline="true" :model="MenmberTypeQuery" ref="MeForm" class="demo-form-inline">
+            <el-form-item prop="cardNum">
+                <el-input v-model="MenmberTypeQuery.cardNum" placeholder="会员卡号"></el-input>
+            </el-form-item>
+            <el-form-item prop="name">
+                <el-input v-model="MenmberTypeQuery.name" placeholder="会员名字"></el-input>
+            </el-form-item>
+            <el-form-item prop="payType">
+                <el-select v-model="MenmberTypeQuery.payType" placeholder="支付类型">
+                    <el-option v-for="(item,index) in proTypeList" :key="index" :label="item" :value="index">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item required prop="birthday">
+                <el-date-picker type="date" value-format="yyyy-MM-dd" placeholder="选择日期"
+                    v-model="MenmberTypeQuery.birthday" style="width: 100%;">
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="onSubmitQuery">查询</el-button>
+                <el-button type="primary">新增</el-button>
+                <el-button @click="resetForm('MeForm')">重置</el-button>
+            </el-form-item>
+        </el-form>
+        <el-table :data="MenmberToList" height="450" border style="width: 100%">
+            <el-table-column type="index" label="序号">
+            </el-table-column>
+            <el-table-column prop="cardNum" label="会员卡号" width="160px">
+            </el-table-column>
+            <el-table-column prop="name" label="会员姓名">
+            </el-table-column>
+            <el-table-column prop="birthday" label="会员生日">
+            </el-table-column>
+            <el-table-column prop="phone" label="手机号码" width="120px">
+            </el-table-column>
+            <el-table-column prop="integral" label="可用积分">
+            </el-table-column>
+            <el-table-column prop="money" label="开卡金额">
+            </el-table-column>
+            <el-table-column prop="payType" label="支付类型">
+                <template v-slot="scope">
+                    {{scope.row.payType | payNum}}
+                </template>
+            </el-table-column>
+            <el-table-column prop="address" label="会员地址" width="200px">
+            </el-table-column>
+            <el-table-column label="操作" width="150px">
+                <template v-slot="scope">
+                    <el-button size="mini">编辑</el-button>
+                    <el-button size="mini" type="danger">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <Paginat :total="total" :page="page" :size="size" @PageNum="Laypage" @PageSize="LaySize"></Paginat>
     </div>
 </template>
 <script>
+import Paginat from '../../components/Pagination'
+import proTypes from '../../enum/filter'
+import menmber from '../../api/menmber';
 export default {
-    data () {
+    components: {
+        Paginat,
+    },
+    data() {
         return {
-    
+            page: 1,
+            size: 10,
+            total: 0,
+            MenmberTypeQuery: {
+                cardNum: "",
+                name: "",
+                payType: "",
+                birthday: ""
+            },
+            MenmberToList: [],//会员列表数据
+            proTypeList: proTypes.proType,
         };
     },
-    methods:{
-    
-    }
+    methods: {
+        //会员列表
+        async menmberList() {
+            const { page, size, MenmberTypeQuery } = this
+            const QuMenmberList = await menmber.MenmberList(page, size, MenmberTypeQuery)
+            console.log(QuMenmberList, 'MenmberList');
+            this.total = QuMenmberList.data.data.total
+            this.MenmberToList = QuMenmberList.data.data.rows
+        },
+        //展示条
+        LaySize(size) {
+            // console.log(size);
+            this.page = size
+            this.menmberList()
+        },
+        //当前页
+        Laypage(page) {
+            this.page = page
+            this.menmberList()
+        },
+        //查询
+        onSubmitQuery() {
+            this.page = 1
+            this.menmberList()
+        },
+        //重置
+        resetForm(formName) {
+            this.$refs[formName].resetFields();
+        }
+    },
+    filters: {
+        //支付 过滤
+        payNum(val) {
+            return proTypes.proType[val]
+        }
+    },
+    created() {
+        this.menmberList()
+    },
 }
 </script>
 <style scoped lang="scss">
-    
+
 </style>
