@@ -20,7 +20,7 @@
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="onSubmitQuery">查询</el-button>
-                <el-button type="primary">新增</el-button>
+                <el-button type="primary" @click="FromAddList">新增</el-button>
                 <el-button @click="resetForm('MeForm')">重置</el-button>
             </el-form-item>
         </el-form>
@@ -48,12 +48,55 @@
             </el-table-column>
             <el-table-column label="操作" width="150px">
                 <template v-slot="scope">
-                    <el-button size="mini">编辑</el-button>
-                    <el-button size="mini" type="danger">删除</el-button>
+                    <el-button size="mini" @click="edit(scope.row.id)">编辑</el-button>
+                    <el-button size="mini" type="danger" @click="hoadleDel(scope.row.id)">删除</el-button>
                 </template>
             </el-table-column>
         </el-table>
         <Paginat :total="total" :page="page" :size="size" @PageNum="Laypage" @PageSize="LaySize"></Paginat>
+        <!-- //模态框 -->
+        <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
+            <span>
+                <el-form :model="ruleFormList" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                    <el-form-item label="会员卡号" prop="cardNum">
+                        <el-input v-model="ruleFormList.cardNum"></el-input>
+                    </el-form-item>
+                    <el-form-item label="会员姓名" prop="name">
+                        <el-input v-model="ruleFormList.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="会员生日">
+                        <el-form-item prop="birthday">
+                            <el-date-picker type="date" value-format="yyyy-MM-dd" placeholder="会员生日"
+                                v-model="ruleFormList.birthday" style="width: 100%;">
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-form-item>
+                    <el-form-item label="手机号码" prop="phone">
+                        <el-input v-model="ruleFormList.phone"></el-input>
+                    </el-form-item>
+                    <el-form-item label="开卡金额" prop="money">
+                        <el-input v-model="ruleFormList.money"></el-input>
+                    </el-form-item>
+                    <el-form-item label="可用积分" prop="integral">
+                        <el-input v-model="ruleFormList.integral"></el-input>
+                    </el-form-item>
+                    <el-form-item label="支付类型" prop="payType">
+                        <el-select v-model="ruleFormList.payType" placeholder="支付类型">
+                            <el-option v-for="(item,index) in proTypeList" :key="index" :label="item" :value="index">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="会员地址" prop="desc">
+                        <el-input type="textarea" v-model="ruleFormList.address"></el-input>
+                    </el-form-item>
+                </el-form>
+            </span>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="Oksubmit" v-show="title=='会员新增'">确 定</el-button>
+                <el-button type="primary" @click="amend" v-show="title=='会员编辑'">修改提交</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -69,15 +112,41 @@ export default {
             page: 1,
             size: 10,
             total: 0,
+            //表单
             MenmberTypeQuery: {
                 cardNum: "",
                 name: "",
                 payType: "",
                 birthday: ""
             },
+            ruleFormList: {
+                cardNum: '',
+                name: '',
+                payType: '',
+                birthday: '',
+                phone: '',
+                integral: '',
+                money: '',
+                address: ''
+            },
+            title: "会员新增",
+            byId: 0,
+            rules: {
+                cardNum: [
+                    { required: true, message: "卡号不能为空", trigger: "blur" }
+                ],
+                name: [
+                    { required: true, message: "姓名不能为空", trigger: "blur" }
+                ],
+                payType: [
+                    { required: true, message: "支付类型不能为空", trigger: "change" }
+                ]
+            },
             MenmberToList: [],//会员列表数据
             proTypeList: proTypes.proType,
+            dialogVisible: false
         };
+
     },
     methods: {
         //会员列表
@@ -107,6 +176,63 @@ export default {
         //重置
         resetForm(formName) {
             this.$refs[formName].resetFields();
+        },
+        //删除
+        hoadleDel(id) {
+            this.$confirm('确定删除吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(async () => {
+                const response = await menmber.MenmberDel(id)
+                console.log(response, 'response');
+                this.$message.success('删除成功')
+                this.menmberList()
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });
+            });
+        },
+        //添加（新增）
+        async Oksubmit() {
+
+            const FromAdd = await menmber.MenmberAdd(this.ruleFormList)
+            console.log(FromAdd, 'FromAdd');
+            this.dialogVisible = false
+            this.$message.success('新增成功')
+            this.menmberList()
+        },
+        //编辑
+        async edit(id) {
+            this.title = '会员编辑'
+            const response = await menmber.GetmenById(id)
+            console.log(response, 'response');
+            this.ruleFormList = response.data.data
+            this.dialogVisible = true
+            this.byId = id
+        },
+        //列表添加弹出模态框
+        FromAddList() {
+            this.title = '会员新增'
+            this.dialogVisible = true
+            this.ruleFormList = {
+                cardNum: '',
+                name: '',
+                payType: '',
+                birthday: '',
+                phone: '',
+                integral: '',
+                money: '',
+                address: ''
+            }
+        },
+        async amend() {
+            const amendId = await menmber.MenmberEdit(this.byId, this.ruleFormList)
+            console.log(amendId);
+            this.$message.success('更新成功')
+            this.dialogVisible = false
         }
     },
     filters: {
