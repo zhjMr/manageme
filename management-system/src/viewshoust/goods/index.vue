@@ -16,31 +16,7 @@
                 <el-button @click="resetForm('MeForm')">重置</el-button>
             </el-form-item>
         </el-form>
-        <el-table :data="MenmberToList" height="450" border style="width: 100%">
-            <el-table-column type="index" label="序号">
-            </el-table-column>
-            <el-table-column prop="name" label="商品名称" width="160px">
-            </el-table-column>
-            <el-table-column prop="code" label="商品编码">
-            </el-table-column>
-            <el-table-column prop="spec" label="商品规格">
-            </el-table-column>
-            <el-table-column prop="retailPrice" label="零售价" width="120px">
-            </el-table-column>
-            <el-table-column prop="purchasePrice" label="进货价">
-            </el-table-column>
-            <el-table-column prop="storageNum" label="库存数量">
-            </el-table-column>
-            <el-table-column prop="supplierName" label="供应商" width="200px">
-            </el-table-column>
-            <el-table-column label="操作" width="150px">
-                <template v-slot="scope">
-                    <el-button size="mini" @click="edit(scope.row.id)">编辑</el-button>
-                    <el-button size="mini" type="danger" @click="hoadleDel(scope.row.id)">删除</el-button>
-                </template>
-            </el-table-column>
-        </el-table>
-        <Paginat :total="total" :page="page" :size="size" @PageNum="Laypage" @PageSize="LaySize"></Paginat>
+
         <!-- //模态框 -->
         <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
             <span>
@@ -95,20 +71,26 @@
                         <el-table-column prop="linkman" label="联系人">
                         </el-table-column>
                     </el-table>
-                    <Paginat :total="total" :page="page" :size="size" @PageNum="Laypage" @PageSize="LaySize"></Paginat>
                 </span>
             </el-dialog>
         </div>
+        <TableTion :columns="columns" :MenmberToList="MenmberToList" :size="size" :page="page" :total="total"
+            @size="LaySize" @page="Laypage">
+            <template v-slot:action="scope">
+                <el-button type="primary" @click="edit(scope.item.id)">编辑</el-button>
+                <el-button type="danger" @click="hoadleDel(scope.item.id)">删除</el-button>
+            </template>
+        </TableTion>
     </div>
 </template>
 <script>
-import Paginat from '../../components/Pagination'
+import TableTion from '../../components/TableTion.vue'
 import proTypes from '../../enum/filter'
 import goodsApi from '../../api/goods';
 import supplier from '../../api/supplier';
 export default {
     components: {
-        Paginat,
+        TableTion,
     },
     data() {
         return {
@@ -144,6 +126,55 @@ export default {
                     { required: true, message: "零售价不能为空", trigger: "change" }
                 ]
             },
+            columns: [
+                {
+                    type: "index",
+                    label: "序号",
+                },
+                {
+                    label: "商品名称",
+                    prop: "name",
+                },
+                {
+                    label: "商品编码",
+                    prop: "code",
+                },
+                {
+                    label: "商品规格",
+                    prop: "spec",
+                },
+                {
+                    label: "零售价",
+                    prop: "purchasePrice",
+                },
+                {
+                    label: "进货价",
+                    prop: "retailPrice",
+                },
+                {
+                    label: "库存数量",
+                    prop: "storageNum",
+                },
+                {
+                    label: "供应商",
+                    prop: "supplierName",
+                },
+                {
+                    label: "操作",
+                    type: "action",
+                    actions: [
+                        {
+                            type: 'primary',
+                            text: "编辑"
+                        },
+                        {
+                            type: 'danger',
+                            text: "删除"
+                        },
+                    ]
+                },
+
+            ],
             MenmberToList1: [],//供应商列表数据
             MenmberToList: [],//会员列表数据
             proTypeList: proTypes.proType,

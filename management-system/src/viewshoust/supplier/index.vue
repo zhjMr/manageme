@@ -16,25 +16,6 @@
                 <el-button @click="resetForm('MeForm')">重置</el-button>
             </el-form-item>
         </el-form>
-        <el-table :data="MenmberToList" height="450" border style="width: 100%">
-            <el-table-column type="index" label="序号">
-            </el-table-column>
-            <el-table-column prop="name" label="供应商名称">
-            </el-table-column>
-            <el-table-column prop="linkman" label="联系人">
-            </el-table-column>
-            <el-table-column prop="mobile" label="联系电话">
-            </el-table-column>
-            <el-table-column prop="remark" label="备注" width="280px">
-            </el-table-column>
-            <el-table-column label="操作" width="150px">
-                <template v-slot="scope">
-                    <el-button size="mini" @click="edit(scope.row.id)">编辑</el-button>
-                    <el-button size="mini" type="danger" @click="hoadleDel(scope.row.id)">删除</el-button>
-                </template>
-            </el-table-column>
-        </el-table>
-        <Paginat :total="total" :page="page" :size="size" @PageNum="Laypage" @PageSize="LaySize"></Paginat>
         <!-- //模态框 -->
         <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
             <span>
@@ -59,18 +40,62 @@
                 <el-button type="primary" @click="amend" v-show="title=='供应商编辑'">修改提交</el-button>
             </span>
         </el-dialog>
+        <TableTion :MenmberToList="MenmberToList" :columns="columns" :page="page" :size="size" :total="total"
+            @size="heldsize" @page="heldpage">
+            <template v-slot:action="scope">
+                <el-button type="primary" @click="edit(scope.item.id)">编辑</el-button>
+                <el-button type="danger" @click="del(scope.item.id)">删除</el-button>
+            </template>
+        </TableTion>
     </div>
 </template>
 <script>
-import Paginat from '../../components/Pagination'
+import TableTion from '../../components/TableTion.vue'
 import proTypes from '../../enum/filter'
 import supplier from '../../api/supplier';
 export default {
     components: {
-        Paginat,
+        TableTion,
     },
     data() {
         return {
+            columns: [
+                {
+                    type: 'index',
+                    label: '序号',
+                    width: '180'
+                },
+                {
+                    label: '供应商名称',
+                    prop: 'name'
+                },
+                {
+                    label: '联系人',
+                    prop: 'linkman'
+                },
+                {
+                    label: '联系电话',
+                    prop: 'mobile'
+                },
+                {
+                    label: '备注',
+                    prop: 'remark'
+                },
+                {
+                    label: '操作',
+                    type: "action",
+                    actions: [
+                        {
+                            type: "danger",
+                            text: "删除",
+                        },
+                        {
+                            type: "primary",
+                            text: "编辑",
+                        },
+                    ]
+                },
+            ],
             page: 1,
             size: 10,
             total: 0,
@@ -97,7 +122,7 @@ export default {
                     { required: true, message: "姓名不能为空", trigger: "blur" }
                 ],
             },
-            MenmberToList: [],//会员列表数据
+            MenmberToList: [],//列表数据
             proTypeList: proTypes.proType,
             dialogVisible: false
         };
@@ -108,18 +133,17 @@ export default {
         async menmberList() {
             const { page, size, MenmberTypeQuery } = this
             const QuMenmberList = await supplier.SuppList(page, size, MenmberTypeQuery)
-            console.log(QuMenmberList, '供应商管理');
             this.total = QuMenmberList.data.data.total
             this.MenmberToList = QuMenmberList.data.data.rows
+            console.log(this.MenmberToList, ' this.MenmberToList');
         },
         //展示条
-        LaySize(size) {
-            // console.log(size);
-            this.page = size
+        heldsize(size) {
+            this.size = size
             this.menmberList()
         },
         //当前页
-        Laypage(page) {
+        heldpage(page) {
             this.page = page
             this.menmberList()
         },
@@ -133,7 +157,7 @@ export default {
             this.$refs[formName].resetFields();
         },
         //删除
-        hoadleDel(id) {
+        del(id) {
             this.$confirm('确定删除吗？', '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',

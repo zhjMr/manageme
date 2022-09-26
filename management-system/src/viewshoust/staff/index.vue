@@ -13,29 +13,6 @@
                 <el-button @click="resetForm('MeForm')">重置</el-button>
             </el-form-item>
         </el-form>
-        <el-table :data="MenmberToList" height="450" border style="width: 100%">
-            <el-table-column type="index" label="序号">
-            </el-table-column>
-            <el-table-column prop="username" label="账号" width="160px">
-            </el-table-column>
-            <el-table-column prop="name" label="姓名">
-            </el-table-column>
-            <el-table-column prop="age" label="年龄">
-            </el-table-column>
-            <el-table-column prop="mobile" label="电话" width="120px">
-            </el-table-column>
-            <el-table-column prop="salary" label="薪酬">
-            </el-table-column>
-            <el-table-column prop="entryDate" label="入职时间">
-            </el-table-column>
-            <el-table-column label="操作" width="150px">
-                <template v-slot="scope">
-                    <el-button size="mini" @click="edit(scope.row.id)">编辑</el-button>
-                    <el-button size="mini" type="danger" @click="hoadleDel(scope.row.id)">删除</el-button>
-                </template>
-            </el-table-column>
-        </el-table>
-        <Paginat :total="total" :page="page" :size="size" @PageNum="Laypage" @PageSize="LaySize"></Paginat>
         <!-- //模态框 -->
         <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
             <span>
@@ -70,18 +47,62 @@
                 <el-button type="primary" @click="amend" v-show="title=='员工编辑'">修改提交</el-button>
             </span>
         </el-dialog>
+        <TableTion :total="total" :page="page" :size="size" @page="Laypage" @size="LaySize" :columns="columns"
+            :MenmberToList="MenmberToList">
+            <template v-slot:action="scope">
+                <el-button type='primary' @click="edit(scope.item.id)">编辑</el-button>
+                <el-button type="danger" @click="hoadleDel(scope.item.id)">删除</el-button>
+            </template>
+        </TableTion>
     </div>
 </template>
 <script>
-import Paginat from '../../components/Pagination'
+import TableTion from "../../components/TableTion.vue"
 import proTypes from '../../enum/filter'
 import staffApi from '../../api/staff'
 export default {
     components: {
-        Paginat,
+        TableTion
     },
     data() {
         return {
+            columns: [
+                {
+                    type: "index",
+                    label: "序号"
+                },
+                {
+                    prop: "username",
+                    label: "账号"
+                },
+                {
+                    prop: "name",
+                    label: "姓名"
+                },
+
+                {
+                    prop: "age",
+                    label: "年龄"
+                },
+                {
+                    prop: "mobile",
+                    label: "电话"
+                },
+                {
+                    prop: "salary",
+                    label: "薪酬"
+                },
+                {
+                    prop: "entryDate",
+                    label: "入职时间"
+                },
+
+                {
+                    type: "action",
+                    label: "操作"
+                },
+
+            ],
             page: 1,
             size: 10,
             total: 0,
@@ -112,9 +133,9 @@ export default {
             },
             MenmberToList: [],//会员列表数据
             proTypeList: proTypes.proType,
-            dialogVisible: false
-        };
+            dialogVisible: false,
 
+        };
     },
     methods: {
         //会员列表

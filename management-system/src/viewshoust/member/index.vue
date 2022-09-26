@@ -24,36 +24,7 @@
                 <el-button @click="resetForm('MeForm')">重置</el-button>
             </el-form-item>
         </el-form>
-        <el-table :data="MenmberToList" height="450" border style="width: 100%">
-            <el-table-column type="index" label="序号">
-            </el-table-column>
-            <el-table-column prop="cardNum" label="会员卡号" width="160px">
-            </el-table-column>
-            <el-table-column prop="name" label="会员姓名">
-            </el-table-column>
-            <el-table-column prop="birthday" label="会员生日">
-            </el-table-column>
-            <el-table-column prop="phone" label="手机号码" width="120px">
-            </el-table-column>
-            <el-table-column prop="integral" label="可用积分">
-            </el-table-column>
-            <el-table-column prop="money" label="开卡金额">
-            </el-table-column>
-            <el-table-column prop="payType" label="支付类型">
-                <template v-slot="scope">
-                    {{scope.row.payType | payNum}}
-                </template>
-            </el-table-column>
-            <el-table-column prop="address" label="会员地址" width="200px">
-            </el-table-column>
-            <el-table-column label="操作" width="150px">
-                <template v-slot="scope">
-                    <el-button size="mini" @click="edit(scope.row.id)">编辑</el-button>
-                    <el-button size="mini" type="danger" @click="hoadleDel(scope.row.id)">删除</el-button>
-                </template>
-            </el-table-column>
-        </el-table>
-        <Paginat :total="total" :page="page" :size="size" @PageNum="Laypage" @PageSize="LaySize"></Paginat>
+
         <!-- //模态框 -->
         <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
             <span>
@@ -97,15 +68,22 @@
                 <el-button type="primary" @click="amend" v-show="title=='会员编辑'">修改提交</el-button>
             </span>
         </el-dialog>
+        <TableTion :columns="columns" :MenmberToList="MenmberToList" :size="size" :page="page" :total="total"
+            @size="LaySize" @page="Laypage">
+            <template v-slot:action="scope">
+                <el-button type="primary" @click="edit(scope.item.id)">编辑</el-button>
+                <el-button type="danger" @click="hoadleDel(scope.item.id)">删除</el-button>
+            </template>
+        </TableTion>
     </div>
 </template>
 <script>
-import Paginat from '../../components/Pagination'
 import proTypes from '../../enum/filter'
 import menmber from '../../api/menmber';
+import TableTion from '../../components/TableTion.vue'
 export default {
     components: {
-        Paginat,
+        TableTion
     },
     data() {
         return {
@@ -144,7 +122,57 @@ export default {
             },
             MenmberToList: [],//会员列表数据
             proTypeList: proTypes.proType,
-            dialogVisible: false
+            dialogVisible: false,
+            columns: [
+                {
+                    type: "index",
+                    label: "序号"
+                },
+                {
+                    label: "会员卡号",
+                    prop: "cardNum",
+                    width: '200'
+                },
+                {
+                    label: "会员姓名",
+                    prop: "name",
+                },
+                {
+                    label: "会员生日",
+                    prop: "birthday",
+                },
+                {
+                    label: "手机号码",
+                    prop: "phone",
+                    width: "150"
+                },
+                {
+                    label: "可用积分",
+                    prop: "integral",
+                },
+                {
+                    label: "开卡金额",
+                    prop: "money",
+                },
+                {
+                    label: "支付类型",
+                    prop: "payType",
+                    formatter: (row, column, cellValue, index) => {
+                        return proTypes.proType[row.payType]
+                    }
+                },
+                {
+                    label: "会员地址",
+                    prop: "address",
+                    width: "180",
+
+                },
+                {
+                    label: "操作",
+                    type: "action",
+                    width: "200"
+                },
+            ]
         };
 
     },
@@ -179,6 +207,7 @@ export default {
         },
         //删除
         hoadleDel(id) {
+            console.log(id, 'id');
             this.$confirm('确定删除吗？', '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
