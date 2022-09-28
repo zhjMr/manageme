@@ -1,78 +1,23 @@
 <template>
     <div class="top">
-        <el-form :inline="true" :model="MenmberTypeQuery" ref="MeForm" class="demo-form-inline">
-            <el-form-item prop="cardNum">
-                <el-input v-model="MenmberTypeQuery.cardNum" placeholder="会员卡号"></el-input>
-            </el-form-item>
-            <el-form-item prop="name">
-                <el-input v-model="MenmberTypeQuery.name" placeholder="会员名字"></el-input>
-            </el-form-item>
-            <el-form-item prop="payType">
-                <el-select v-model="MenmberTypeQuery.payType" placeholder="支付类型">
-                    <el-option v-for="(item,index) in proTypeList" :key="index" :label="item" :value="index">
-                    </el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item required prop="birthday">
-                <el-date-picker type="date" value-format="yyyy-MM-dd" placeholder="选择日期"
-                    v-model="MenmberTypeQuery.birthday" style="width: 100%;">
-                </el-date-picker>
-            </el-form-item>
-            <el-form-item>
+        <!-- 查询封装 -->
+        <QueryFrom v-model.sync="MenmberTypeQuery" :queryFrom="queryFrom" :proTypeList="proTypeList" ref="querFr">
+            <template v-slot:Member="scope">
                 <el-button type="primary" @click="onSubmitQuery">查询</el-button>
-                <el-button type="primary" @click="FromAddList">新增</el-button>
-                <el-button @click="resetForm('MeForm')">重置</el-button>
-            </el-form-item>
-        </el-form>
-
+                <el-button type="primary" @click="FromAdd">新增</el-button>
+                <el-button @click="handelClear">重置</el-button>
+            </template>
+        </QueryFrom>
         <!-- //模态框 -->
-        <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
-            <span>
-                <el-form :model="ruleFormList" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                    <el-form-item label="会员卡号" prop="cardNum">
-                        <el-input v-model="ruleFormList.cardNum"></el-input>
-                    </el-form-item>
-                    <el-form-item label="会员姓名" prop="name">
-                        <el-input v-model="ruleFormList.name"></el-input>
-                    </el-form-item>
-                    <el-form-item label="会员生日">
-                        <el-form-item prop="birthday">
-                            <el-date-picker type="date" value-format="yyyy-MM-dd" placeholder="会员生日"
-                                v-model="ruleFormList.birthday" style="width: 100%;">
-                            </el-date-picker>
-                        </el-form-item>
-                    </el-form-item>
-                    <el-form-item label="手机号码" prop="phone">
-                        <el-input v-model="ruleFormList.phone"></el-input>
-                    </el-form-item>
-                    <el-form-item label="开卡金额" prop="money">
-                        <el-input v-model="ruleFormList.money"></el-input>
-                    </el-form-item>
-                    <el-form-item label="可用积分" prop="integral">
-                        <el-input v-model="ruleFormList.integral"></el-input>
-                    </el-form-item>
-                    <el-form-item label="支付类型" prop="payType">
-                        <el-select v-model="ruleFormList.payType" placeholder="支付类型">
-                            <el-option v-for="(item,index) in proTypeList" :key="index" :label="item" :value="index">
-                            </el-option>
-                        </el-select>
-                    </el-form-item>
-                    <el-form-item label="会员地址" prop="desc">
-                        <el-input type="textarea" v-model="ruleFormList.address"></el-input>
-                    </el-form-item>
-                </el-form>
-            </span>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="Oksubmit" v-show="title=='会员新增'">确 定</el-button>
-                <el-button type="primary" @click="amend" v-show="title=='会员编辑'">修改提交</el-button>
-            </span>
-        </el-dialog>
+        <DialogAdd :dialogVisible.sync="dialogVisible" :rules="rules" v-model='ruleFormList' :proTypeList="proTypeList"
+            :DialogFrom="DialogFrom" @Oksubmit="handelsubmit" :dialogConfig="dialogConfig" ref="dan">
+        </DialogAdd>
+        <!-- 表格封装 -->
         <TableTion :columns="columns" :MenmberToList="MenmberToList" :size="size" :page="page" :total="total"
             @size="LaySize" @page="Laypage">
             <template v-slot:action="scope">
-                <el-button type="primary" @click="edit(scope.item.id)">编辑</el-button>
-                <el-button type="danger" @click="hoadleDel(scope.item.id)">删除</el-button>
+                <el-button type="primary" size="mini" @click="FromAdd(scope.item.id)">编辑</el-button>
+                <el-button type="danger" size="mini" @click="hoadleDel(scope.item.id)">删除</el-button>
             </template>
         </TableTion>
     </div>
@@ -83,14 +28,102 @@ import menmber from '../../api/menmber';
 import TableTion from '../../components/TableTion.vue'
 export default {
     components: {
-        TableTion
+        TableTion,
+        QueryFrom: () => import('../../components/QueryPt.vue'),
+        DialogAdd: () => import('../../components/Dialog.vue')
     },
     data() {
         return {
+            rules: {
+                cardNum: [
+                    { required: true, message: "卡号不能为空", trigger: "blur" }
+                ],
+                name: [
+                    { required: true, message: "姓名不能为空", trigger: "blur" }
+                ],
+                payType: [
+                    { required: true, message: "支付类型不能为空", trigger: "change" }
+                ]
+            },
+            dialogConfig: {
+                title: "供应商新增",
+                labeWidth: "80px",
+                width: "500px"
+            },
+            DialogFrom: [
+                {
+                    prop: "cardNum",
+                    type: "input",
+                    label: "会员卡号"
+                },
+                {
+                    prop: "name",
+                    type: "input",
+                    label: "会员姓名"
+                },
+                {
+                    prop: "birthday",
+                    type: "date",
+                    label: "会员生日",
+                    placeholder: "会员生日"
+                },
+                {
+                    prop: "phone",
+                    type: "input",
+                    label: "手机号码"
+                },
+                {
+                    prop: "money",
+                    type: "input",
+                    label: "开卡金额"
+                },
+                {
+                    prop: "integral",
+                    type: "input",
+                    label: "可用积分"
+                },
+                {
+                    prop: "payType",
+                    type: "select",
+                    label: "支付类型",
+                    placeholder: "支付类型"
+                },
+                {
+                    prop: "address",
+                    type: "textarea",
+                    label: "会员地址"
+                },
+            ],
+            queryFrom: [
+                {
+                    type: "input",
+                    prop: "cardNum",
+                    placeholder: "会员卡号"
+                },
+                {
+                    type: "input",
+                    prop: "name",
+                    placeholder: "张三"
+                },
+                {
+                    type: "select",
+                    prop: "payType",
+                    placeholder: "支付类型"
+                },
+                {
+                    type: "date",
+                    prop: "birthday",
+                    placeholder: "出生日期",
+                },
+                {
+                    type: "siot",
+                    name: "Member"
+                },
+            ],
             page: 1,
             size: 10,
             total: 0,
-            //表单
+            //表单,
             MenmberTypeQuery: {
                 cardNum: "",
                 name: "",
@@ -107,19 +140,7 @@ export default {
                 money: '',
                 address: ''
             },
-            title: "会员新增",
             byId: 0,
-            rules: {
-                cardNum: [
-                    { required: true, message: "卡号不能为空", trigger: "blur" }
-                ],
-                name: [
-                    { required: true, message: "姓名不能为空", trigger: "blur" }
-                ],
-                payType: [
-                    { required: true, message: "支付类型不能为空", trigger: "change" }
-                ]
-            },
             MenmberToList: [],//会员列表数据
             proTypeList: proTypes.proType,
             dialogVisible: false,
@@ -170,13 +191,33 @@ export default {
                 {
                     label: "操作",
                     type: "action",
-                    width: "200"
+                    width: "200",
+                    actions: [
+                        {
+                            text: '编辑',
+                            way: this.edit
+                        },
+                        {
+                            text: '删除',
+                            way: this.hoadleDel,
+                        },
+                    ]
                 },
             ]
         };
 
     },
     methods: {
+        FromAdd(id) {
+            this.dialogVisible = true
+            if (typeof id === 'number') {
+                this.edit(id)
+                this.dialogConfig.title = '供应商编辑'
+                return
+            }
+            this.dialogConfig.title = '供应商新增'
+            this.$refs['dan'].menit()
+        },
         //会员列表
         async menmberList() {
             const { page, size, MenmberTypeQuery } = this
@@ -202,8 +243,9 @@ export default {
             this.menmberList()
         },
         //重置
-        resetForm(formName) {
-            this.$refs[formName].resetFields();
+        handelClear() {
+            console.log(this.$refs['querFr']);
+            this.$refs['querFr'].handleFrom();
         },
         //删除
         hoadleDel(id) {
@@ -226,16 +268,21 @@ export default {
         },
         //添加（新增）
         async Oksubmit() {
-
             const FromAdd = await menmber.MenmberAdd(this.ruleFormList)
             console.log(FromAdd, 'FromAdd');
             this.dialogVisible = false
             this.$message.success('新增成功')
             this.menmberList()
         },
+        handelsubmit() {
+            if (this.byId) {
+                this.amend()
+            } else {
+                this.Oksubmit()
+            }
+        },
         //编辑
         async edit(id) {
-            this.title = '会员编辑'
             const response = await menmber.GetmenById(id)
             console.log(response, 'response');
             this.ruleFormList = response.data.data
@@ -243,25 +290,26 @@ export default {
             this.byId = id
         },
         //列表添加弹出模态框
-        FromAddList() {
-            this.title = '会员新增'
-            this.dialogVisible = true
-            this.ruleFormList = {
-                cardNum: '',
-                name: '',
-                payType: '',
-                birthday: '',
-                phone: '',
-                integral: '',
-                money: '',
-                address: ''
-            }
-        },
+        // FromAddList() {
+        //     this.title = '会员新增'
+        //     this.dialogVisible = true
+        //     this.ruleFormList = {
+        //         cardNum: '',
+        //         name: '',
+        //         payType: '',
+        //         birthday: '',
+        //         phone: '',
+        //         integral: '',
+        //         money: '',
+        //         address: ''
+        //     }
+        // },
         async amend() {
             const amendId = await menmber.MenmberEdit(this.byId, this.ruleFormList)
             console.log(amendId);
             this.$message.success('更新成功')
             this.dialogVisible = false
+            this.$refs['dan'].menit()
         }
     },
     filters: {

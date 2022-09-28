@@ -1,18 +1,12 @@
 <template>
     <div class="top">
-        <el-form :inline="true" :model="MenmberTypeQuery" ref="MeForm" class="demo-form-inline">
-            <el-form-item prop="username">
-                <el-input v-model="MenmberTypeQuery.username" placeholder="账号"></el-input>
-            </el-form-item>
-            <el-form-item prop="name">
-                <el-input v-model="MenmberTypeQuery.name" placeholder="姓名"></el-input>
-            </el-form-item>
-            <el-form-item>
+        <staffTion :queryFrom="queryFrom" v-model="MenmberTypeQuery" ref="clear">
+            <template v-slot:name_slot="scope">
                 <el-button type="primary" @click="onSubmitQuery">查询</el-button>
                 <el-button type="primary" @click="FromAddList">新增</el-button>
-                <el-button @click="resetForm('MeForm')">重置</el-button>
-            </el-form-item>
-        </el-form>
+                <el-button @click="reset">重置</el-button>
+            </template>
+        </staffTion>
         <!-- //模态框 -->
         <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
             <span>
@@ -50,8 +44,8 @@
         <TableTion :total="total" :page="page" :size="size" @page="Laypage" @size="LaySize" :columns="columns"
             :MenmberToList="MenmberToList">
             <template v-slot:action="scope">
-                <el-button type='primary' @click="edit(scope.item.id)">编辑</el-button>
-                <el-button type="danger" @click="hoadleDel(scope.item.id)">删除</el-button>
+                <el-button type='primary' size="mini" @click="edit(scope.item.id)">编辑</el-button>
+                <el-button type="danger" size="mini" @click="hoadleDel(scope.item.id)">删除</el-button>
             </template>
         </TableTion>
     </div>
@@ -62,7 +56,8 @@ import proTypes from '../../enum/filter'
 import staffApi from '../../api/staff'
 export default {
     components: {
-        TableTion
+        TableTion,
+        staffTion: () => import('../../components/QueryPt.vue')
     },
     data() {
         return {
@@ -102,6 +97,22 @@ export default {
                     label: "操作"
                 },
 
+            ],
+            queryFrom: [
+                {
+                    type: "input",
+                    prop: "username",
+                    placeholder: "账号"
+                },
+                {
+                    type: "input",
+                    prop: "name",
+                    placeholder: "姓名"
+                },
+                {
+                    type: "slot",
+                    name: "name_slot"
+                },
             ],
             page: 1,
             size: 10,
@@ -163,8 +174,8 @@ export default {
             this.menmberList()
         },
         //重置
-        resetForm(formName) {
-            this.$refs[formName].resetFields();
+        reset() {
+            this.$refs['clear'].handleFrom();
         },
         //删除
         hoadleDel(id) {

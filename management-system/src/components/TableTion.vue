@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-table :data="MenmberToList" height="350" border style="width: 100%">
+        <el-table :data="MenmberToList" height="450" border style="width: 100%">
             <template v-for="(item,index) in columns">
                 <el-table-column v-bind="item" v-if="item.type && item.type!=='action'" :type="item.type"
                     :label="item.label">
@@ -10,6 +10,8 @@
                 <el-table-column v-else-if="item.type=='action'" v-bind="item" :label="item.label">
                     <template v-slot="scope">
                         <slot :name="item.type" :item="scope.row"></slot>
+                        <!-- <el-button v-for="(ele,index) in item.actions" @click="ele.way(scope.row)">{{ele.text}}
+                        </el-button> -->
                     </template>
                 </el-table-column>
                 <!-- <el-table-column :label="item.label" v-else-if="item.type === 'action'">

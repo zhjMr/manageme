@@ -1,6 +1,7 @@
 
 import axios from 'axios'
 import store from '../store/index'
+import { Loading } from 'element-ui';
 // 自定义错误信息提示内容
 const exceptionMessage = {
     1000: '用户名或者密码发生错误',
@@ -14,11 +15,29 @@ const service = axios.create({
     baseURL: process.env.VUE_APP_BASE_API,
     timeout: 5000
 })
-
+const loading = {
+    loadingInstance: null,
+    open() {
+        if (this.loadingInstance == null) {
+            this.loadingInstance = Loading.service({
+                target: '.el-main',
+                text: '拼命加载中...',
+                background: "rgba(0,0,0,0.4)"
+            })
+        }
+    },
+    close() {
+        if (this.loadingInstance !== null) {
+            this.loadingInstance.close()
+            this.loadingInstance = null
+        }
+    }
+}
 // 请求拦截器
 service.interceptors.request.use(function (config) {
     //获取vuex的token
     const token = store.getters.token
+    loading.open()
     //token请求头
     if (token) config.headers.authorization = "Bearer" + token
     return config;
@@ -28,13 +47,13 @@ service.interceptors.request.use(function (config) {
 
 // 响应拦截器
 service.interceptors.response.use(function (response) {
-
+    loading.close()
     if (response.status < 400) {
         return response
     }
 
     if (response.status === 401) {
-        
+
         return
     }
 

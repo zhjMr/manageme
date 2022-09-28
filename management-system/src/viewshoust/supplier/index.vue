@@ -1,21 +1,12 @@
 <template>
     <div class="top">
-        <el-form :inline="true" :model="MenmberTypeQuery" ref="MeForm" class="demo-form-inline">
-            <el-form-item prop="name">
-                <el-input v-model="MenmberTypeQuery.name" placeholder="供应商名称"></el-input>
-            </el-form-item>
-            <el-form-item prop="linkman">
-                <el-input v-model="MenmberTypeQuery.linkman" placeholder="联系人"></el-input>
-            </el-form-item>
-            <el-form-item prop="mobile">
-                <el-input v-model="MenmberTypeQuery.mobile" placeholder="联系电话"></el-input>
-            </el-form-item>
-            <el-form-item>
+        <queryTable v-model.sync="MenmberTypeQuery" :queryFrom="queryFrom" ref="queryFr">
+            <template v-slot:slot_name="scope">
                 <el-button type="primary" @click="onSubmitQuery">查询</el-button>
                 <el-button type="primary" @click="FromAddList">新增</el-button>
-                <el-button @click="resetForm('MeForm')">重置</el-button>
-            </el-form-item>
-        </el-form>
+                <el-button @click="resetForm">重置</el-button>
+            </template>
+        </queryTable>
         <!-- //模态框 -->
         <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
             <span>
@@ -43,8 +34,8 @@
         <TableTion :MenmberToList="MenmberToList" :columns="columns" :page="page" :size="size" :total="total"
             @size="heldsize" @page="heldpage">
             <template v-slot:action="scope">
-                <el-button type="primary" @click="edit(scope.item.id)">编辑</el-button>
-                <el-button type="danger" @click="del(scope.item.id)">删除</el-button>
+                <el-button type="primary" size="mini"  @click="edit(scope.item.id)">编辑</el-button>
+                <el-button type="danger"  size="mini"   @click="del(scope.item.id)">删除</el-button>
             </template>
         </TableTion>
     </div>
@@ -56,9 +47,31 @@ import supplier from '../../api/supplier';
 export default {
     components: {
         TableTion,
+        queryTable: () => import('../../components/QueryPt.vue')
     },
     data() {
         return {
+            queryFrom: [
+                {
+                    type: "input",
+                    prop: "name",
+                    placeholder: "供应商名称"
+                },
+                {
+                    type: "input",
+                    prop: "linkman",
+                    placeholder: "联系人"
+                },
+                {
+                    type: "input",
+                    prop: "mobile",
+                    placeholder: "联系电话"
+                },
+                {
+                    type: "slot",
+                    name: "slot_name"
+                },
+            ],
             columns: [
                 {
                     type: 'index',
@@ -153,8 +166,8 @@ export default {
             this.menmberList()
         },
         //重置
-        resetForm(formName) {
-            this.$refs[formName].resetFields();
+        resetForm() {
+            this.$refs['queryFr'].handleFrom()
         },
         //删除
         del(id) {

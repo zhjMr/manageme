@@ -1,22 +1,13 @@
 <template>
     <div class="top">
-        <el-form :inline="true" :model="MenmberTypeQuery" ref="MeForm" class="demo-form-inline">
-            <el-form-item prop="name">
-                <el-input v-model="MenmberTypeQuery.name" placeholder="商品名称"></el-input>
-            </el-form-item>
-            <el-form-item prop="code">
-                <el-input v-model="MenmberTypeQuery.code" placeholder="商品编码"></el-input>
-            </el-form-item>
-            <el-form-item prop="supplierName">
-                <el-input v-model="MenmberTypeQuery.supplierName" placeholder="选择供应商" @focus="modal"></el-input>
-            </el-form-item>
-            <el-form-item>
+        <!-- 查询组件 -->
+        <goodsTion v-model.sync="MenmberTypeQuery" :queryFrom="queryFrom" ref="clear">
+            <template v-slot:slot_name="scope">
                 <el-button type="primary" @click="onSubmitQuery">查询</el-button>
                 <el-button type="primary" @click="FromAddList">新增</el-button>
-                <el-button @click="resetForm('MeForm')">重置</el-button>
-            </el-form-item>
-        </el-form>
-
+                <el-button @click="reset">重置</el-button>
+            </template>
+        </goodsTion>
         <!-- //模态框 -->
         <el-dialog :title="title" :visible.sync="dialogVisible" width="50%">
             <span>
@@ -50,8 +41,6 @@
                 <el-button type="primary" @click="amend" v-show="title=='商品编辑'">修改提交</el-button>
             </span>
         </el-dialog>
-
-
         <div class="tow">
             <el-dialog title="选择供应商" :visible.sync="dialogVisible2" width="55%" slot="footer">
                 <span>
@@ -74,11 +63,12 @@
                 </span>
             </el-dialog>
         </div>
+        <!-- 表格组件 -->
         <TableTion :columns="columns" :MenmberToList="MenmberToList" :size="size" :page="page" :total="total"
             @size="LaySize" @page="Laypage">
             <template v-slot:action="scope">
-                <el-button type="primary" @click="edit(scope.item.id)">编辑</el-button>
-                <el-button type="danger" @click="hoadleDel(scope.item.id)">删除</el-button>
+                <el-button type="primary" size="mini" @click="edit(scope.item.id)">编辑</el-button>
+                <el-button type="danger" size="mini" @click="hoadleDel(scope.item.id)">删除</el-button>
             </template>
         </TableTion>
     </div>
@@ -91,6 +81,7 @@ import supplier from '../../api/supplier';
 export default {
     components: {
         TableTion,
+        goodsTion: () => import('../../components/QueryPt.vue')
     },
     data() {
         return {
@@ -126,6 +117,27 @@ export default {
                     { required: true, message: "零售价不能为空", trigger: "change" }
                 ]
             },
+            queryFrom: [
+                {
+                    type: "input",
+                    prop: "name",
+                    placeholder: "商品名称",
+                },
+                {
+                    type: "input",
+                    prop: "code",
+                    placeholder: "商品编码",
+                },
+                {
+                    type: "input",
+                    prop: "supplierName",
+                    placeholder: "选择供应商",
+                },
+                {
+                    type: "slot",
+                    name: "slot_name",
+                },
+            ],
             columns: [
                 {
                     type: "index",
@@ -227,8 +239,8 @@ export default {
             this.menmberList()
         },
         //重置
-        resetForm(formName) {
-            this.$refs[formName].resetFields();
+        reset() {
+            this.$refs['clear'].handleFrom();
         },
         //删除
         hoadleDel(id) {

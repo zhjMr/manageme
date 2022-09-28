@@ -37,7 +37,7 @@ export default {
     methods: {
 
     },
-   
+
     created() {
         console.log(this.$route);
     },
@@ -51,5 +51,8 @@ export default {
 <style scoped lang="scss">
 .el-menu-vertical-demo {
     height: 100vh;
+}
+.el-menu{
+    border: none;
 }
 </style>
